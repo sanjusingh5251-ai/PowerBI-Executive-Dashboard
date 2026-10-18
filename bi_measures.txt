@@ -1,0 +1,107 @@
+ --Base measure
+
+Total Revenue = Sum('public bi_fact_sales'[price])
+
+Total order = DISTINCTCOUNT('public bi_fact_sales'[order_id])
+
+Total freight value = Sum('public bi_fact_sales'[freight_value])
+
+Total customer = DISTINCTCOUNT('public bi_fact_sales'[customer_unique_id])
+
+Average review = AVERAGE('public bi_fact_sales'[review_score])
+
+AOV = DIVIDE([Total Revenue],[Total order])
+
+Item per order = DIVIDE([Item sold],[Total order])
+
+Item sold = COUNTA('public bi_fact_sales'[order_item_id])
+
+Late orders = CALCULATE([Total order],'public bi_fact_sales'[order_status] = "delievered" , 'public bi_fact_sales'[is_late] = 1)
+
+On time % = DIVIDE([order delivered]-[Late orders],[order delivered])
+
+order delivered = CALCULATE([Total order],'public bi_fact_sales'[order_status] = "delivered")
+
+-- order measure 
+
+late orders = 
+CALCULATE(
+    DISTINCTCOUNT('public bi_fact_sales'[order_id]),
+    'public bi_fact_sales'[order_status] = "delivered",
+    'public bi_fact_sales'[is_late] = 1
+)
+
+order delivered = CALCULATE([Total order],'public bi_fact_sales'[order_status] = "delivered")
+
+Avg Delivery Days = 
+AVERAGE ( 'public bi_fact_sales'[delivery_days] )
+
+Late delivery % = DIVIDE( [late delivered], [order delivered] )
+
+
+-- payment measure
+
+payment installments = AVERAGE('public bi_fact_sales'[payment_installments])
+
+Total payment = 
+SUMX(VALUES( 'public bi_fact_sales'[order_id]),
+     CALCULATE(MAX('public bi_fact_sales'[payment_value])))-- sellers measure
+
+Total Sellers = DISTINCTCOUNT ( 'public bi_fact_sales'[seller_id] )
+
+Revenue per Seller = DIVIDE ( [Total Revenue], [Total Sellers] )
+
+-- freight value measure
+
+Avg Freight per Item = AVERAGE(('public bi_fact_sales'[freight_value]) )
+
+--time measure
+Revenue LY = 
+CALCULATE ( [Total Revenue], SAMEPERIODLASTYEAR ( Dim_Date[Date] ) )
+
+Revenue YTD = TOTALYTD ( [Total Revenue], Dim_Date[Date] )
+
+Rolling 30D Revenue = 
+CALCULATE(
+    [Total Revenue],
+    DATESINPERIOD ( Dim_Date[Date], MAX ( Dim_Date[Date] ), -30, DAY )
+)
+
+YoY % = DIVIDE ( [Total Revenue] - [Revenue LY], [Revenue LY] )
+
+-- columns 
+
+country = "brazil" 
+
+Review Bucket = 
+SWITCH(
+    TRUE(),
+    ISBLANK('public bi_fact_sales'[review_score]), "No Review",
+    'public bi_fact_sales'[review_score] >= 4, "Positive (4-5)",
+    'public bi_fact_sales'[review_score] = 3, "Neutral (3)",
+    "Negative (1-2)"
+)
+
+Route Type = IF( ISBLANK('public bi_fact_sales'[seller_state]) || ISBLANK('public bi_fact_sales'[customer_state]), "Unknown", IF('public bi_fact_sales'[seller_state] = 'public bi_fact_sales'[customer_state], "Same state", "Cross state") )
+
+-- dim_date create 
+Dim_Date = 
+ADDCOLUMNS(
+    CALENDAR(
+        MIN('public bi_fact_sales'[purchase_date]),
+        MAX('public bi_fact_sales'[purchase_date])
+    ),
+    "Year", YEAR([Date]),
+    "Month No", MONTH([Date]),
+    "Month", FORMAT([Date], "MMM"),
+    "Year-Month", FORMAT([Date], "YYYY-MM"),
+    "Quarter", "Q" & FORMAT([Date], "Q"),
+    "Weekday No", WEEKDAY([Date], 2),
+    "Weekday", FORMAT([Date], "DDD"),
+    "Month Start", DATE(YEAR([Date]), MONTH([Date]), 1)
+)
+
+
+
+
+

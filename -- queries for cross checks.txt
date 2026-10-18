@@ -1,0 +1,27 @@
+-- queries for cross checks 
+
+
+WITH o AS (
+    SELECT order_id,
+           CASE WHEN seller_state = customer_state THEN 'Same state' ELSE 'Cross state' END AS route,
+           MAX(delivery_days) AS delivery_days
+    FROM bi_fact_sales
+    WHERE order_status = 'delivered'
+      AND seller_state IS NOT NULL AND customer_state IS NOT NULL
+    GROUP BY order_id, 2
+)
+SELECT route,
+       COUNT(*) AS orders,
+       ROUND(AVG(delivery_days)::numeric, 1) AS avg_delivery_days
+FROM o
+GROUP BY route;
+
+SELECT
+  CASE WHEN seller_state = customer_state THEN 'Same state' ELSE 'Cross state' END AS route,
+  COUNT(DISTINCT order_id) AS orders,
+  ROUND(100.0 * COUNT(DISTINCT order_id) / SUM(COUNT(DISTINCT order_id)) OVER (), 1) AS pct
+FROM bi_fact_sales
+WHERE order_status = 'delivered'
+  AND seller_state IS NOT NULL AND customer_state IS NOT NULL
+GROUP BY 1;
+

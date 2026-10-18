@@ -1,0 +1,88 @@
+DROP TABLE IF EXISTS customers_data CASCADE;
+CREATE TABLE customers_data(
+customer_id TEXT PRIMARY KEY,
+customer_unique_id TEXT,
+customer_zip_code_prefix TEXT,
+customer_city TEXT,
+customer_state TEXT
+);
+
+DROP TABLE IF EXISTS geolocations_data CASCADE;
+CREATE TABLE geolocations_data(
+gelocation_zip_code_prefix TEXT,
+geolocation_lat NUMERIC,
+geolocation_lon NUMERIC,
+geolocation_city TEXT,
+geolocation_state TEXT
+);
+
+DROP TABLE IF EXISTS products_data CASCADE;
+CREATE TABLE products_data(
+product_id TEXT PRIMARY KEY,
+product_category_name TEXT,
+product_name_lenght INTEGER,
+product_description_lenght INTEGER,
+product_photo_qty INTEGER,
+product_weight_gm INTEGER,
+product_length_cm INTEGER,
+product_weight_cm INTEGER,
+product_width_cm INTEGER
+);
+
+DROP TABLE IF EXISTS sellers_data CASCADE;
+CREATE TABLE sellers_data(
+seller_id TEXT PRIMARY KEY,
+seller_zip_code_prefix TEXT,
+seller_city TEXT,
+seller_state TEXT
+);
+
+
+DROP TABLE IF EXISTS orders_data CASCADE;
+CREATE TABLE orders_data(
+order_id TEXT PRIMARY KEY,
+customer_id TEXT,
+order_status TEXT,
+order_purchase_timestamp TIMESTAMP,
+order_approve_at TIMESTAMP,
+order_delivered_carrier_date TIMESTAMP,
+order_delivered_customer_date TIMESTAMP,
+order_estimated_delivery_date TIMESTAMP
+);
+
+DROP TABLE IF EXISTS order_items_data CASCADE;
+CREATE TABLE order_items_data(
+order_id TEXT PRIMARY KEY,
+order_item_id INTEGER,
+product_id TEXT,
+seller_id TEXT,
+shipping_limit_date TIMESTAMP,
+price NUMERIC,
+freight_value NUMERIC
+);
+
+DROP TABLE IF EXISTS order_payments_data CASCADE;
+CREATE TABLE order_payments_data(
+order_id TEXT PRIMARY KEY,
+payment_sequential INTEGER,
+payment_type TEXT,
+payment_installments INTEGER,
+payment_value NUMERIC
+);
+
+DROP TABLE IF EXISTS order_reviews_data CASCADE;
+CREATE TABLE order_reviews_data(
+review_id TEXT,
+order_id TEXT,
+review_score INTEGER,
+review_comment_title TEXT,
+review_comment_message TEXT,
+review_creation_date TIMESTAMP,
+review_answer_timestamp TIMESTAMP
+);
+
+DROP TABLE IF EXISTS product_category_name_translation CASCADE;
+CREATE TABLE product_category_name_translation(
+product_category_name TEXT PRIMARY KEY,
+product_category_name_english TEXT
+);
