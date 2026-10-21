@@ -115,9 +115,7 @@ Screenshots are in the [`images`](images) folder.
 
 ## How to run
 
-1. Download the dataset from Kaggle: ## 📁 Dataset Reference
-The dataset used in this project is the **Olist Brazilian E-Commerce Dataset** available on Kaggle:
-👉 [Kaggle Dataset Link](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). 
+1. Download the dataset from Kaggle: *Brazilian E-Commerce Public Dataset by Olist*.
 2. Create a PostgreSQL database and run the table scripts (`create_table_sql`), then the foreign keys script.
 3. Import each CSV into its table (see the data challenges above for date format, delimiter and encoding settings).
 4. Run the view scripts in this order: `bi_dim_product`, `bi_dim_latest_review`, `bi_payments_order`, `bi_fact_order`, `bi_fact_sales`.
@@ -151,7 +149,5 @@ The dataset used in this project is the **Olist Brazilian E-Commerce Dataset** a
 ## Author
 
 **[yogita]**, aspiring Data Analyst
-[LinkedIn](www.linkedin.com/in/
-sanjana-singh-1466b4261) | [Email](sanju.singh5251@gmail.com)
-
-The full written report is in the `report` folder.
+github:(https://github.com/sanjusingh5251-ai)
+Email: (yogita.sin231@gmail.com)

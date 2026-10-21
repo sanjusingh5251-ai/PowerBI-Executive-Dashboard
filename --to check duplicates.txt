@@ -1,0 +1,41 @@
+ --to check duplicates
+
+SELECT order_id, customer_id,
+COUNT(*) AS row_count
+FROM bi_fact_order
+GROUP BY order_id, customer_id
+HAVING COUNT(*)>1;
+
+SELECT 
+    order_id, 
+    order_item_id, 
+    COUNT(*) AS row_count
+FROM bi_fact_sales
+GROUP BY order_id, order_item_id
+HAVING COUNT(*) > 1;
+
+SELECT product_id,
+COUNT(*) AS row_count
+FROM bi_dim_product
+GROUP BY product_id
+HAVING COUNT(*)>1;
+
+SELECT order_id,
+COUNT(*) AS row_count
+FROM bi_payments_order
+GROUP BY order_id
+HAVING COUNT(*)>1;
+
+SELECT order_id,
+COUNT(*) AS row_count
+FROM bi_dim_latest_review
+GROUP BY order_id
+HAVING COUNT(*)>1;
+
+-- Base table ka total price
+SELECT SUM(price) AS total_base_price 
+FROM olist_order_items_dataset;
+
+-- View ka total price
+SELECT SUM(price) AS total_view_price 
+FROM bi_fact_sales;

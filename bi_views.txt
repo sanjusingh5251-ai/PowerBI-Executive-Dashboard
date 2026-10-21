@@ -1,0 +1,104 @@
+-- view for overall information about product
+
+CREATE OR REPLACE VIEW bi_dim_product AS SELECT
+p.product_id,
+COALESCE(t.product_category_name_english,p.product_category_name) AS Category,
+p.product_weight_gm,
+p.product_height_cm,
+p.product_width_cm,
+p.product_length_cm,
+(p.product_height_cm*
+p.product_width_cm*
+p.product_length_cm) AS product_volume_cm3
+FROM products_data AS p
+LEFT JOIN product_category_name_translation AS t
+ON t.product_category_name = p.product_category_name;
+
+-- view for latest reviews for an order_id
+
+CREATE OR REPLACE VIEW  bi_dim_latest_review AS SELECT
+DISTINCT ON(r.order_id)
+r.order_id,
+r.review_score,
+r.review_creation_date,
+r.review_answer_timestamp::date
+FROM order_reviews_data as r
+order by r.order_id, r.review_creation_date DESC NULLS LAST;
+
+-- views for order_delivered_info 
+
+CREATE OR REPLACE VIEW bi_fact_order AS SELECT 
+o.order_id,
+o.customer_id,
+o.order_status,
+o.order_purchase_timestamp::date AS purchase_date,
+date_trunc('month',o.order_purchase_timestamp)::date AS purchase_month,
+o.order_delivered_customer_date::date AS delivered_date,
+o.order_estimated_delivery_date::date AS estimated_delivery_date,
+CASE
+WHEN o.order_status = 'delivered'
+AND o.order_purchase_timestamp IS NOT NULL
+AND o.order_delivered_customer_date IS NOT NULL
+THEN o.order_delivered_customer_date::date - o.order_purchase_timestamp::date
+ELSE NULL
+END AS delivery_days,
+CASE
+WHEN o.order_status = 'delivered'
+AND o.order_delivered_customer_date IS NOT NULL
+AND o.order_estimated_delivery_date IS NOT NULL 
+AND o.order_delivered_customer_date::date > o.order_estimated_delivery_date::date
+THEN 1 ELSE 0
+END AS IS_LATE,
+c.customer_unique_id,
+c.customer_city,
+c.customer_state
+FROM orders_data AS o
+JOIN customers_data AS c 
+ON c.customer_id = o.customer_id;
+
+-- view for  columns necessary for dax_measure
+
+
+CREATE OR REPLACE VIEW bi_fact_sales AS SELECT
+oi.order_id,
+oi.order_item_id,
+oi.product_id,
+oi.seller_id,
+oi.shipping_limit_date::date AS shipping_limit_date,
+oi.price,
+oi.freight_value,
+fo.customer_id,
+fo.order_status,
+fo.purchase_date,
+fo.purchase_month,
+fo.delivered_date,
+fo.estimated_delivery_date,
+fo.delivery_days,
+fo.is_late,
+fo.customer_unique_id,
+fo.customer_city,
+fo.customer_state,
+dp.category,
+r.review_score,
+p.payment_type,
+p.payment_installments,
+p.payment_value,
+s.seller_city,
+s.seller_state
+FROM order_items_data AS oi
+JOIN bi_fact_order AS fo ON fo.order_id = oi.order_id
+LEFT JOIn bi_dim_product AS dp ON dp.product_id = oi.product_id
+LEFT JOIN bi_dim_latest_review AS r ON r.order_id = oi.order_id
+LEFT JOIN bi_payments_order AS p ON p.order_id = oi.order_id
+LEFT JOIN sellers_data AS s ON s.seller_id = oi.seller_id;
+
+
+-- view for check most uased payment_type  or orders
+
+CREATE OR REPLACE VIEW bi_payments_order AS SELECT
+op.order_id,
+SUM(op.payment_value) AS order_payment_value,
+MAX(op.payment_installments) AS order_payment_installments,
+(ARRAY_AGG(op.payment_type ORDER BY op.payment_value DESC NULLS LAST))[1] AS order_payment_type
+FROM order_payments_data AS op
+GROUP BY op.order_id;

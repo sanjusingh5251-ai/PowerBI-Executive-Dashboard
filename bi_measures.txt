@@ -43,9 +43,9 @@ Late delivery % = DIVIDE( [late delivered], [order delivered] )
 
 payment installments = AVERAGE('public bi_fact_sales'[payment_installments])
 
-Total payment = 
-SUMX(VALUES( 'public bi_fact_sales'[order_id]),
-     CALCULATE(MAX('public bi_fact_sales'[payment_value])))-- sellers measure
+Total payment = sum('public bi_fact_sales'[payment_value])
+
+-- sellers measure
 
 Total Sellers = DISTINCTCOUNT ( 'public bi_fact_sales'[seller_id] )
 
